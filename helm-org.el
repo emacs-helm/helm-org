@@ -19,6 +19,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+;;; Commentary:
+;; 
+
 ;;; Code:
 (require 'cl-lib)
 (require 'helm)
@@ -37,7 +41,7 @@
 
 (defcustom helm-org-headings-fontify nil
   "Fontify org buffers before parsing them.
-This reflect fontification in helm-buffer when non--nil.
+This reflect fontification in `helm-buffer' when non--nil.
 NOTE: This will be slow on large org buffers."
   :group 'helm-org
   :type 'boolean)
@@ -68,13 +72,12 @@ Note this have no effect in `helm-org-in-buffer-headings'."
     ("Open in indirect buffer `C-c i'" . helm-org--open-heading-in-indirect-buffer)
     ("Refile heading(s) (marked-to-selected|current-to-selected) `C-c w`" . helm-org--refile-heading-to)
     ("Insert link to this heading `C-c l`" . helm-org-insert-link-to-heading-at-marker))
-  "Default actions alist for
-  `helm-source-org-headings-for-files'."
+  "Default actions alist for `helm-source-org-headings-for-files'."
   :group 'helm-org
   :type '(alist :key-type string :value-type function))
 
 (defcustom helm-org-truncate-lines t
-  "Truncate org-header-lines when non-nil"
+  "Truncate org-header-lines when non-nil."
   :type 'boolean
   :group 'helm-org)
 
@@ -138,6 +141,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
 ;;
 (defvar org-capture-templates)
 (defun helm-source-org-capture-templates ()
+  "Build source for org capture templates."
   (helm-build-sync-source "Org Capture Templates:"
     :candidates (cl-loop for template in org-capture-templates
                          collect (cons (nth 1 template) (nth 0 template)))
@@ -148,6 +152,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
 ;;
 ;;
 (defun helm-org-goto-marker (marker)
+  "Go to MARKER in org buffer."
   (switch-to-buffer (marker-buffer marker))
   (goto-char (marker-position marker))
   (org-show-context)
@@ -156,6 +161,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
   (org-show-children))
 
 (defun helm-org--open-heading-in-indirect-buffer (marker)
+  "Open org heading at MARKER in indirect buffer."
   (helm-org-goto-marker marker)
   (org-tree-to-indirect-buffer)
 
@@ -205,6 +211,9 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
               (if parents (nreverse cands) cands))))))
 
 (defun helm-source-org-headings-for-files (filenames &optional parents)
+  "Build source for org headings in files FILENAMES.
+When PARENTS is specified, bild source for heading that are parents of
+current heading."
   (helm-make-source "Org Headings" 'helm-org-headings-class
     :filtered-candidate-transformer 'helm-org-startup-visibility
     :parents parents
@@ -256,6 +265,8 @@ nothing to CANDIDATES."
               (cdr i)))))
 
 (defun helm-org-get-candidates (filenames &optional parents)
+  "Get org headings for file FILENAMES.
+Get PARENTS of heading when specified."
   (apply #'append
          (mapcar (lambda (filename)
                    (helm-org--get-candidates-in-file
@@ -266,6 +277,10 @@ nothing to CANDIDATES."
                  filenames)))
 
 (defun helm-org--get-candidates-in-file (filename &optional fontify nofname parents)
+  "Get candidates for org FILENAME.
+Fontify each heading when FONTIFY is specified.
+Don't show filename when NOFNAME.
+Get PARENTS as well when specified."
   (with-current-buffer (pcase filename
                          ((pred bufferp) filename)
                          ((pred stringp) (find-file-noselect filename t)))
@@ -325,6 +340,7 @@ nothing to CANDIDATES."
                               . ,(point-marker))))))))
 
 (defun helm-org-insert-link-to-heading-at-marker (marker)
+  "Insert link to heading at MARKER position."
   (with-current-buffer (marker-buffer marker)
     (let ((heading-name (save-excursion (goto-char (marker-position marker))
                                         (nth 4 (org-heading-components))))
@@ -334,6 +350,7 @@ nothing to CANDIDATES."
          file-name (concat "file:" file-name "::*" heading-name))))))
 
 (defun helm-org-run-insert-link-to-heading-at-marker ()
+  "Run interactively `helm-org-insert-link-to-heading-at-marker'."
   (interactive)
   (with-helm-alive-p
     (helm-exit-and-execute-action
@@ -360,6 +377,7 @@ will be refiled."
                     (org-refile nil nil rfloc))))))
 
 (defun helm-org-in-buffer-preselect ()
+  "Preselect function for `helm-org-in-buffer-headings'."
   (if (org-on-heading-p)
       (buffer-substring-no-properties (point-at-bol) (point-at-eol))
       (save-excursion
@@ -367,6 +385,7 @@ will be refiled."
         (buffer-substring-no-properties (point-at-bol) (point-at-eol)))))
 
 (defun helm-org-run-refile-heading-to ()
+  "Helm org refile heading action."
   (interactive)
   (with-helm-alive-p
     (helm-exit-and-execute-action 'helm-org--refile-heading-to)))
@@ -384,7 +403,7 @@ will be refiled."
                             collect (helm-basename f))))
     (when (or (null autosaves)
               helm-org-ignore-autosaves
-              (y-or-n-p (format "%s have auto save data, continue?"
+              (y-or-n-p (format "%s have auto save data, continue? "
                                 (mapconcat 'identity autosaves ", "))))
       (helm :sources (helm-source-org-headings-for-files (org-agenda-files))
             :candidate-number-limit 99999
@@ -405,8 +424,7 @@ will be refiled."
 
 ;;;###autoload
 (defun helm-org-parent-headings ()
-  "Preconfigured helm for org headings that are parents of the
-current heading."
+  "Preconfigured helm for org headings that are parents of the current heading."
   (interactive)
   ;; Use a large max-depth to ensure all parents are displayed.
   (let ((helm-org-headings-min-depth 1)

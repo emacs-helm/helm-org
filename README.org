@@ -1,0 +1,3 @@
+* Helm for org headlines and keywords completion
+
+Search in org headlines in all org files or in current org buffer.
