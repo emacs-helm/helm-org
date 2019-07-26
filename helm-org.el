@@ -4,7 +4,8 @@
 ;; Author:      Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; URL: https://github.com/emacs-helm/helm-org
-;; Package-Requires: ((helm "3.3"))
+;; Package-Requires: ((helm "3.3") (emacs "24.4"))
+;; Version: 1.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@
 
 ;;; Commentary:
 ;; 
+;; Helm for org headlines and keywords completion
 
 ;;; Code:
 (require 'cl-lib)
