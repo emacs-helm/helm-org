@@ -457,6 +457,7 @@ will be refiled."
 ;; <https://groups.google.com/d/msg/emacs-helm/tA6cn6TUdRY/G1S3TIdzBwAJ>
 
 (defvar crm-separator)
+(defvar helm-completing-read-handlers-alist)
 
 ;;;###autoload
 (defun helm-org-completing-read-tags (prompt collection pred req initial
