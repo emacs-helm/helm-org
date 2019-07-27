@@ -30,6 +30,9 @@
 (require 'helm)
 (require 'helm-utils)
 (require 'org)
+
+(defvar helm-completing-read-handlers-alist)
+
 
 ;; Load org-with-point-at macro when compiling
 (eval-when-compile
