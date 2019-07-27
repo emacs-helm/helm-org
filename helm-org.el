@@ -411,7 +411,7 @@ will be refiled."
     (when (or (null autosaves)
               helm-org-ignore-autosaves
               (y-or-n-p (format "%s have auto save data, continue? "
-                                (mapconcat 'identity autosaves ", "))))
+                                (mapconcat #'identity autosaves ", "))))
       (helm :sources (helm-source-org-headings-for-files (org-agenda-files))
             :candidate-number-limit 99999
             :truncate-lines helm-org-truncate-lines
@@ -485,11 +485,11 @@ selection, see (info \"(org) setting tags\")."
                       (org-split-string initial ":")))
            (table   (delete curr
                             (org-uniquify
-                             (mapcar 'car org-last-tags-completion-table))))
+                             (mapcar #'car org-last-tags-completion-table))))
            (crm-separator ":\\|,\\|\\s-"))
       (cl-letf (((symbol-function 'crm-complete-word)
                  'self-insert-command))
-        (mapconcat 'identity
+        (mapconcat #'identity
                    (completing-read-multiple
                     prompt table pred nil initial hist def)
                    ":")))))
