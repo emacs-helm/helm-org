@@ -1,3 +1,39 @@
-* Helm for org headlines and keywords completion
+[[https://github.com/emacs-helm/helm-recoll/blob/master/LICENSE][file:http://img.shields.io/badge/license-GNU%20GPLv3-blue.svg]]
+[[http://stable.melpa.org/#/helm-recoll][file:http://stable.melpa.org/packages/helm-org-badge.svg]]
+[[http://melpa.org/#/helm-recoll][file:http://melpa.org/packages/helm-org-badge.svg]]
 
-Search in org headlines in all org files or in current org buffer.
+* Helm for org headlines and keywords completion.
+
+** Features
+
+This package provide the following commands:
+
+- ~helm-org-agenda-files-headings~
+
+Allows searching in headings of all your org files.
+
+- ~helm-org-in-buffer-headings~
+
+Allows searching in headings of current org buffer.
+
+- ~helm-org-parent-headings~
+
+Find the parents heading of current heading.
+
+- ~helm-org-capture-templates~
+
+Completion on org capture templates.
+
+It also make ~org-capture~ and ~org-set-tags~ working properly with
+~helm-mode~.
+
+** Installation
+
+The easiest way is to install from Melpa with
+M-x ~helm-list-elisp-packages~.
+
+To install from source, ensure Helm is installed (see
+https://github.com/emacs-helm/helm/wiki#install for this) then install
+~helm-org.el~ in your ~load-path~, byte-compile it, and add 
+`(require 'helm-org)` to your init file. 
+
