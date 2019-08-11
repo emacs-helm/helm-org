@@ -30,7 +30,8 @@ It also make ~org-capture~ and ~org-set-tags~ working properly with
 ** Installation
 
 The easiest way is to install from Melpa with
-M-x ~helm-list-elisp-packages~.
+M-x ~helm-list-elisp-packages~ if helm is already installed or with M-x
+~package-install~ => helm-org.
 
 To install from source, ensure Helm is installed (see
 https://github.com/emacs-helm/helm/wiki#install for this) then install
