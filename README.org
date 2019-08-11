@@ -35,5 +35,5 @@ M-x ~helm-list-elisp-packages~.
 To install from source, ensure Helm is installed (see
 https://github.com/emacs-helm/helm/wiki#install for this) then install
 ~helm-org.el~ in your ~load-path~, byte-compile it, and add 
-`(require 'helm-org)` to your init file. 
+~(require 'helm-org)~ to your init file. 
 
