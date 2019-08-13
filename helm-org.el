@@ -32,7 +32,7 @@
 (require 'org)
 (require 'easymenu)
 
-(defvar helm-completing-read-handlers-alist)
+(defvar helm-completing-read-handlers-alist '())
 
 (add-to-list 'helm-completing-read-handlers-alist '(org-capture . helm-org-completing-read-tags))
 (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags))
