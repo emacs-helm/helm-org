@@ -25,7 +25,8 @@ Find the parents heading of current heading.
 Completion on org capture templates.
 
 It also make ~org-capture~ and ~org-set-tags~ working properly with
-~helm-mode~.
+~helm-mode~ when adding ~helm-org-completing-read-tags~ to
+~helm-completing-read-handlers-alist~.
 
 ** Installation
 
@@ -38,3 +39,16 @@ https://github.com/emacs-helm/helm/wiki#install for this) then install
 ~helm-org.el~ in your ~load-path~, byte-compile it, and add 
 ~(require 'helm-org)~ to your init file. 
 
+** Configuration
+
+Once you start M-x ~helm-org-in-buffer-headings~ or M-x ~helm-org-agenda-files-headings~
+hit ~C-h c~ to customize helm-org.
+
+To make ~org-capture~ and ~org-set-tags~ working properly with Helm,
+add them to ~helm-completing-read-handlers-alist~:
+
+    (add-to-list 'helm-completing-read-handlers-alist '(org-capture . helm-org-completing-read-tags))
+    (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags))
+
+Of course you can also use the customize interface to setup ~helm-completing-read-handlers-alist~.
+ 
