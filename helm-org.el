@@ -30,7 +30,7 @@
 (require 'helm)
 (require 'helm-utils)
 (require 'org)
-(require 'easymenu)
+(require 'helm-easymenu)
 
 (defvar helm-completing-read-handlers-alist)
 
