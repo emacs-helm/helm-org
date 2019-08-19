@@ -30,18 +30,19 @@
 (require 'helm)
 (require 'helm-utils)
 (require 'org)
-(require 'helm-easymenu)
 
 (defvar helm-completing-read-handlers-alist)
 
 ;; Menu
 ;;;###autoload
-(easy-menu-add-item
- nil '("Tools" "Helm")
- '("Org"
-   ["Org headlines in org agenda files" helm-org-agenda-files-headings t]
-   ["Org headlines in buffer" helm-org-in-buffer-headings t])
- "Elpa")
+(progn
+  (require 'helm-easymenu)
+  (easy-menu-add-item
+   nil '("Tools" "Helm")
+   '("Org"
+     ["Org headlines in org agenda files" helm-org-agenda-files-headings t]
+     ["Org headlines in buffer" helm-org-in-buffer-headings t])
+   "Elpa"))
 
 
 ;; Load org-with-point-at macro when compiling
