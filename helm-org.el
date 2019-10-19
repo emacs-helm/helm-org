@@ -364,9 +364,7 @@ Get PARENTS as well when specified."
           (file-name (buffer-file-name)))
       (with-helm-current-buffer
         (string-match org-bracket-link-regexp bracket-link)
-        (org-insert-link file-name
-                         (match-string 1 bracket-link)
-                         (match-string 3 bracket-link))))))
+        (org-insert-link file-name (match-string 1 bracket-link))))))
 
 (defun helm-org-run-insert-link-to-heading-at-marker ()
   "Run interactively `helm-org-insert-link-to-heading-at-marker'."
