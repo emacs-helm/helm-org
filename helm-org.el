@@ -360,11 +360,11 @@ Get PARENTS as well when specified."
   (with-current-buffer (marker-buffer marker)
     (let ((bracket-link (save-excursion
                           (goto-char (marker-position marker))
-                          (org-store-link nil nil)))
-          (file-name (buffer-file-name)))
+                          (org-link-unescape
+                           (org-store-link nil nil)))))
       (with-helm-current-buffer
         (string-match org-bracket-link-regexp bracket-link)
-        (org-insert-link file-name (match-string 1 bracket-link))))))
+        (org-insert-link nil (match-string 1 bracket-link))))))
 
 (defun helm-org-run-insert-link-to-heading-at-marker ()
   "Run interactively `helm-org-insert-link-to-heading-at-marker'."
