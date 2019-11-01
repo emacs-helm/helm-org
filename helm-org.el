@@ -358,12 +358,13 @@ Get PARENTS as well when specified."
 (defun helm-org-insert-link-to-heading-at-marker (marker)
   "Insert link to heading at MARKER position."
   (with-current-buffer (marker-buffer marker)
-    (let ((heading-name (save-excursion (goto-char (marker-position marker))
-                                        (nth 4 (org-heading-components))))
-          (file-name (buffer-file-name)))
+    (let ((bracket-link (save-excursion
+                          (goto-char (marker-position marker))
+                          (org-link-unescape
+                           (org-store-link nil nil)))))
       (with-helm-current-buffer
-        (org-insert-link
-         file-name (concat "file:" file-name "::*" heading-name))))))
+        (string-match org-bracket-link-regexp bracket-link)
+        (org-insert-link nil (match-string 1 bracket-link))))))
 
 (defun helm-org-run-insert-link-to-heading-at-marker ()
   "Run interactively `helm-org-insert-link-to-heading-at-marker'."
