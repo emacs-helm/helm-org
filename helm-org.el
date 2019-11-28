@@ -261,11 +261,7 @@ Get PARENTS as well when specified."
           (and (boundp 'org-outline-path-cache)
                (setq org-outline-path-cache nil))
           (cl-loop with width = (window-width (helm-window))
-                   while (and (funcall search-fn)
-                              (string-match-p
-                               helm-pattern
-                               (buffer-substring-no-properties
-                                (point-at-bol) (point-at-eol))))
+                   while (funcall search-fn)
                    for beg = (point-at-bol)
                    for end = (point-at-eol)
                    when (and fontify
