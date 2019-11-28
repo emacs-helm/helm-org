@@ -210,7 +210,12 @@ current heading."
     :candidates (helm-dynamic-completion
                  (helm-org-get-candidates
                   filenames parents)
-                 'stringp)
+                 'stringp
+                 nil '(metadata (display-sort-function
+                                 .
+                                 (lambda (candidates)
+                                   (sort candidates
+                                         #'helm-generic-sort-fn)))))
     :match-dynamic t
     :action 'helm-org-headings-actions
     :keymap helm-org-headings-map
