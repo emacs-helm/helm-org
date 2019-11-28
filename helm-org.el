@@ -202,88 +202,25 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
     map)
   "Keymap for `helm-source-org-headings-for-files'.")
 
-(defclass helm-org-headings-class (helm-source-sync)
-  ((parents
-    :initarg :parents
-    :initform nil
-    :custom boolean)
-   (match :initform
-          (lambda (candidate)
-            (string-match
-             helm-pattern
-             (helm-aif (get-text-property 0 'helm-real-display candidate)
-                 it
-               candidate))))
-   (help-message :initform 'helm-org-headings-help-message)
-   (action :initform 'helm-org-headings-actions)
-   (keymap :initform 'helm-org-headings-map)
-   (group :initform 'helm-org)))
-
-(defmethod helm--setup-source :after ((source helm-org-headings-class))
-  (let ((parents (slot-value source 'parents)))
-    (setf (slot-value source 'candidate-transformer)
-          (lambda (candidates)
-            (let ((cands (helm-org-get-candidates candidates parents)))
-              (if parents (nreverse cands) cands))))))
-
 (defun helm-source-org-headings-for-files (filenames &optional parents)
   "Build source for org headings in files FILENAMES.
 When PARENTS is specified, bild source for heading that are parents of
 current heading."
-  (helm-make-source "Org Headings" 'helm-org-headings-class
-    :filtered-candidate-transformer 'helm-org-startup-visibility
-    :parents parents
-    :candidates filenames))
-
-(defun helm-org-startup-visibility (candidates _source)
-  "Indent headings and hide leading stars displayed in the helm buffer.
-If `org-startup-indented' and `org-hide-leading-stars' are nil, do
-nothing to CANDIDATES."
-  (cl-loop for i in candidates
-	   collect
-           ;; Transformation is not needed if these variables are t.
-	   (if (or helm-org-show-filename helm-org-format-outline-path)
-	       (cons
-		(car i) (cdr i))
-             (cons
-              (if helm-org-headings-fontify
-                  (when (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" (car i))
-                    (replace-match "\\1\\2\\3" t nil (car i)))
-                (when (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" (car i))
-                  (let ((foreground (org-find-invisible-foreground)))
-                    (with-helm-current-buffer
-                      (cond
-                       ;; org-startup-indented is t, and org-hide-leading-stars is t
-                       ;; Or: #+STARTUP: indent hidestars
-                       ((and org-startup-indented org-hide-leading-stars)
-                        (with-helm-buffer
-                          (require 'org-indent)
-                          (org-indent-mode 1)
-                          (replace-match
-                           (format "%s\\2\\3"
-                                   (propertize (replace-match "\\1" t nil (car i))
-                                               'face `(:foreground ,foreground)))
-                           t nil (car i))))
-                       ;; org-startup-indented is nil, org-hide-leading-stars is t
-                       ;; Or: #+STARTUP: noindent hidestars
-                       ((and (not org-startup-indented) org-hide-leading-stars)
-                        (with-helm-buffer
-                          (replace-match
-                           (format "%s\\2\\3"
-                                   (propertize (replace-match "\\1" t nil (car i))
-                                               'face `(:foreground ,foreground)))
-                           t nil (car i))))
-                       ;; org-startup-indented is nil, and org-hide-leading-stars is nil
-                       ;; Or: #+STARTUP: noindent showstars
-                       (t
-                        (with-helm-buffer
-                          (replace-match "\\1\\2\\3" t nil (car i)))))))))
-              (cdr i)))))
+  (helm-build-sync-source "Org headings"
+    :candidates (helm-dynamic-completion
+                 (helm-org-get-candidates
+                  filenames parents)
+                 'stringp)
+    :match-dynamic t
+    :action 'helm-org-headings-actions
+    :keymap helm-org-headings-map
+    :group 'helm-org
+    :requires-pattern 2))
 
 (defun helm-org-get-candidates (filenames &optional parents)
   "Get org headings for file FILENAMES.
 Get PARENTS of heading when specified."
-  (apply #'append
+  (apply #'append ; Flatten list.
          (mapcar (lambda (filename)
                    (helm-org--get-candidates-in-file
                     filename
@@ -324,7 +261,11 @@ Get PARENTS as well when specified."
           (and (boundp 'org-outline-path-cache)
                (setq org-outline-path-cache nil))
           (cl-loop with width = (window-width (helm-window))
-                   while (funcall search-fn)
+                   while (and (funcall search-fn)
+                              (string-match-p
+                               helm-pattern
+                               (buffer-substring-no-properties
+                                (point-at-bol) (point-at-eol))))
                    for beg = (point-at-bol)
                    for end = (point-at-eol)
                    when (and fontify
@@ -418,12 +359,15 @@ will be refiled."
                                   (expand-file-name
                                    (concat "#" (helm-basename f) "#")
                                    (helm-basedir f)))
-                            collect (helm-basename f))))
+                            collect (helm-basename f)))
+        (files (org-agenda-files))
+        org-hide-leading-stars
+        org-startup-indented)
     (when (or (null autosaves)
               helm-org-ignore-autosaves
               (y-or-n-p (format "%s have auto save data, continue? "
                                 (mapconcat #'identity autosaves ", "))))
-      (helm :sources (helm-source-org-headings-for-files (org-agenda-files))
+      (helm :sources (helm-source-org-headings-for-files files)
             :candidate-number-limit 99999
             :truncate-lines helm-org-truncate-lines
             :buffer "*helm org headings*"))))
@@ -432,9 +376,11 @@ will be refiled."
 (defun helm-org-in-buffer-headings ()
   "Preconfigured helm for org buffer headings."
   (interactive)
-  (let (helm-org-show-filename)
-    (helm :sources (helm-source-org-headings-for-files
-                    (list (current-buffer)))
+  (let (helm-org-show-filename
+        (files (list (current-buffer)))
+        org-startup-indented
+        org-hide-leading-stars)
+    (helm :sources (helm-source-org-headings-for-files files)
           :candidate-number-limit 99999
           :preselect (helm-org-in-buffer-preselect)
           :truncate-lines helm-org-truncate-lines
@@ -446,9 +392,9 @@ will be refiled."
   (interactive)
   ;; Use a large max-depth to ensure all parents are displayed.
   (let ((helm-org-headings-min-depth 1)
-        (helm-org-headings-max-depth  50))
-    (helm :sources (helm-source-org-headings-for-files
-                    (list (current-buffer)) t)
+        (helm-org-headings-max-depth  50)
+        (files (list (current-buffer))))
+    (helm :sources (helm-source-org-headings-for-files files t)
           :candidate-number-limit 99999
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org parent headings*")))
