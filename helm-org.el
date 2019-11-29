@@ -219,8 +219,7 @@ current heading."
     :match-dynamic t
     :action 'helm-org-headings-actions
     :keymap helm-org-headings-map
-    :group 'helm-org
-    :requires-pattern 2))
+    :group 'helm-org))
 
 (defun helm-org-get-candidates (filenames &optional parents)
   "Get org headings for file FILENAMES.
