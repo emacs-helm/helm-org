@@ -202,36 +202,32 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
     map)
   "Keymap for `helm-source-org-headings-for-files'.")
 
-(defun helm-source-org-headings-for-files (filenames &optional parents)
-  "Build source for org headings in files FILENAMES.
-When PARENTS is specified, bild source for heading that are parents of
-current heading."
-  (helm-build-sync-source "Org headings"
-    :candidates (helm-dynamic-completion
-                 (helm-org-get-candidates
-                  filenames parents)
-                 'stringp
-                 nil '(metadata (display-sort-function
-                                 .
-                                 (lambda (candidates)
-                                   (sort candidates
-                                         #'helm-generic-sort-fn)))))
-    :match-dynamic t
-    :action 'helm-org-headings-actions
-    :keymap helm-org-headings-map
-    :group 'helm-org))
+(defvar helm-org--headers-cache nil)
+(defvar helm-org--buffer-tick nil)
 
-(defun helm-org-get-candidates (filenames &optional parents)
-  "Get org headings for file FILENAMES.
-Get PARENTS of heading when specified."
-  (apply #'append ; Flatten list.
-         (mapcar (lambda (filename)
-                   (helm-org--get-candidates-in-file
-                    filename
-                    helm-org-headings-fontify
-                    (or parents (null helm-org-show-filename))
-                    parents))
-                 filenames)))
+(defun helm-org-build-sources (filenames &optional parents)
+  (cl-loop for file in filenames
+           for name = (if (bufferp file)
+                          (buffer-name file)
+                        (helm-basename file))
+           collect
+           (helm-build-sync-source (format "Org headings (%s)" name)
+             :candidates (helm-dynamic-completion
+                          (helm-org--get-candidates-in-file
+                           file
+                           helm-org-headings-fontify
+                           (or parents (null helm-org-show-filename))
+                           parents)
+                          'stringp
+                          nil '(metadata (display-sort-function
+                                          .
+                                          (lambda (candidates)
+                                            (sort candidates
+                                                  #'helm-generic-sort-fn)))))
+             :match-dynamic t
+             :action 'helm-org-headings-actions
+             :keymap helm-org-headings-map
+             :group 'helm-org)))
 
 (defun helm-org--get-candidates-in-file (filename &optional fontify nofname parents)
   "Get candidates for org FILENAME.
@@ -241,60 +237,69 @@ Get PARENTS as well when specified."
   (with-current-buffer (pcase filename
                          ((pred bufferp) filename)
                          ((pred stringp) (find-file-noselect filename t)))
-    (let ((match-fn (if fontify
-                        #'match-string
-                      #'match-string-no-properties))
-          (search-fn (lambda ()
-                       (re-search-forward
-                        org-complex-heading-regexp nil t)))
-          (file (unless (or (bufferp filename) nofname)
-                  (concat (helm-basename filename) ":"))))
-      (when parents
-        (add-function :around (var search-fn)
-                      (lambda (old-fn &rest args)
-                                (when (org-up-heading-safe)
-                                  (apply old-fn args)))))
-      (save-excursion
-        (save-restriction
-          (unless (and (bufferp filename)
-                       (buffer-base-buffer filename))
-            ;; Only widen direct buffers, not indirect ones.
-            (widen))
-          (unless parents (goto-char (point-min)))
-          ;; clear cache for new version of org-get-outline-path
-          (and (boundp 'org-outline-path-cache)
-               (setq org-outline-path-cache nil))
-          (cl-loop with width = (window-width (helm-window))
-                   while (funcall search-fn)
-                   for beg = (point-at-bol)
-                   for end = (point-at-eol)
-                   when (and fontify
-                             (null (text-property-any
-                                    beg end 'fontified t)))
-                   do (jit-lock-fontify-now beg end)
-                   for level = (length (match-string-no-properties 1))
-                   for heading = (funcall match-fn 4)
-                   if (and (>= level helm-org-headings-min-depth)
-                           (<= level helm-org-headings-max-depth))
-                   collect (propertize
-                            (if helm-org-format-outline-path
-                                (org-format-outline-path
-                                 ;; org-get-outline-path changed in signature and behaviour since org's
-                                 ;; commit 105a4466971. Let's fall-back to the new version in case
-                                 ;; of wrong-number-of-arguments error.
-                                 (condition-case nil
-                                     (append (apply #'org-get-outline-path
-                                                    (unless parents
-                                                      (list t level heading)))
-                                             (list heading))
-                                   (wrong-number-of-arguments
-                                    (org-get-outline-path t t)))
-                                 width file)
-                              (if file
-                                  (concat file (funcall match-fn  0))
-                                (funcall match-fn  0)))
-                            'helm-real-display heading
-                            'helm-realvalue (point-marker))))))))
+    (let ((tick (buffer-modified-tick)))
+      (if (and helm-org--buffer-tick
+               (= tick helm-org--buffer-tick))
+          helm-org--headers-cache
+        (message "Refreshing cache in `%s'..." (buffer-name))
+        (set (make-local-variable 'helm-org--buffer-tick) tick)
+        (prog1
+            (set (make-local-variable 'helm-org--headers-cache)
+                 (let ((match-fn (if fontify
+                                     #'match-string
+                                   #'match-string-no-properties))
+                       (search-fn (lambda ()
+                                    (re-search-forward
+                                     org-complex-heading-regexp nil t)))
+                       (file (unless (or (bufferp filename) nofname)
+                               (concat (helm-basename filename) ":"))))
+                   (when parents
+                     (add-function :around (var search-fn)
+                                   (lambda (old-fn &rest args)
+                                     (when (org-up-heading-safe)
+                                       (apply old-fn args)))))
+                   (save-excursion
+                     (save-restriction
+                       (unless (and (bufferp filename)
+                                    (buffer-base-buffer filename))
+                         ;; Only widen direct buffers, not indirect ones.
+                         (widen))
+                       (unless parents (goto-char (point-min)))
+                       ;; clear cache for new version of org-get-outline-path
+                       (and (boundp 'org-outline-path-cache)
+                            (setq org-outline-path-cache nil))
+                       (cl-loop with width = (window-width (helm-window))
+                                while (funcall search-fn)
+                                for beg = (point-at-bol)
+                                for end = (point-at-eol)
+                                when (and fontify
+                                          (null (text-property-any
+                                                 beg end 'fontified t)))
+                                do (jit-lock-fontify-now beg end)
+                                for level = (length (match-string-no-properties 1))
+                                for heading = (funcall match-fn 4)
+                                if (and (>= level helm-org-headings-min-depth)
+                                        (<= level helm-org-headings-max-depth))
+                                collect (propertize
+                                         (if helm-org-format-outline-path
+                                             (org-format-outline-path
+                                              ;; org-get-outline-path changed in signature and behaviour since org's
+                                              ;; commit 105a4466971. Let's fall-back to the new version in case
+                                              ;; of wrong-number-of-arguments error.
+                                              (condition-case nil
+                                                  (append (apply #'org-get-outline-path
+                                                                 (unless parents
+                                                                   (list t level heading)))
+                                                          (list heading))
+                                                (wrong-number-of-arguments
+                                                 (org-get-outline-path t t)))
+                                              width file)
+                                           (if file
+                                               (concat file (funcall match-fn  0))
+                                             (funcall match-fn  0)))
+                                         'helm-real-display heading
+                                         'helm-realvalue (point-marker)))))))
+          (message "Refreshing cache in `%s' done" (buffer-name)))))))
 
 (defun helm-org-insert-link-to-heading-at-marker (marker)
   "Insert link to heading at MARKER position."
@@ -367,7 +372,7 @@ will be refiled."
               helm-org-ignore-autosaves
               (y-or-n-p (format "%s have auto save data, continue? "
                                 (mapconcat #'identity autosaves ", "))))
-      (helm :sources (helm-source-org-headings-for-files files)
+      (helm :sources (helm-org-build-sources files)
             :truncate-lines helm-org-truncate-lines
             :buffer "*helm org headings*"))))
 
@@ -379,7 +384,7 @@ will be refiled."
         (files (list (current-buffer)))
         org-startup-indented
         org-hide-leading-stars)
-    (helm :sources (helm-source-org-headings-for-files files)
+    (helm :sources (helm-org-build-sources files)
           :preselect (helm-org-in-buffer-preselect)
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org inbuffer*")))
@@ -392,7 +397,7 @@ will be refiled."
   (let ((helm-org-headings-min-depth 1)
         (helm-org-headings-max-depth  50)
         (files (list (current-buffer))))
-    (helm :sources (helm-source-org-headings-for-files files t)
+    (helm :sources (helm-org-build-sources files t)
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org parent headings*")))
 
