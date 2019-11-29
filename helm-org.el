@@ -277,25 +277,25 @@ Get PARENTS as well when specified."
                    for heading = (funcall match-fn 4)
                    if (and (>= level helm-org-headings-min-depth)
                            (<= level helm-org-headings-max-depth))
-                   collect `(,(propertize
-                               (if helm-org-format-outline-path
-                                   (org-format-outline-path
-                                    ;; org-get-outline-path changed in signature and behaviour since org's
-                                    ;; commit 105a4466971. Let's fall-back to the new version in case
-                                    ;; of wrong-number-of-arguments error.
-                                    (condition-case nil
-                                        (append (apply #'org-get-outline-path
-                                                       (unless parents
-                                                         (list t level heading)))
-                                                (list heading))
-                                      (wrong-number-of-arguments
-                                       (org-get-outline-path t t)))
-                                    width file)
-                                   (if file
-                                       (concat file (funcall match-fn  0))
-                                       (funcall match-fn  0)))
-                               'helm-real-display heading)
-                              . ,(point-marker))))))))
+                   collect (propertize
+                            (if helm-org-format-outline-path
+                                (org-format-outline-path
+                                 ;; org-get-outline-path changed in signature and behaviour since org's
+                                 ;; commit 105a4466971. Let's fall-back to the new version in case
+                                 ;; of wrong-number-of-arguments error.
+                                 (condition-case nil
+                                     (append (apply #'org-get-outline-path
+                                                    (unless parents
+                                                      (list t level heading)))
+                                             (list heading))
+                                   (wrong-number-of-arguments
+                                    (org-get-outline-path t t)))
+                                 width file)
+                              (if file
+                                  (concat file (funcall match-fn  0))
+                                (funcall match-fn  0)))
+                            'helm-real-display heading
+                            'helm-realvalue (point-marker))))))))
 
 (defun helm-org-insert-link-to-heading-at-marker (marker)
   "Insert link to heading at MARKER position."
