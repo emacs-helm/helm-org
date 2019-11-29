@@ -237,7 +237,7 @@ Get PARENTS as well when specified."
   (with-current-buffer (pcase filename
                          ((pred bufferp) filename)
                          ((pred stringp) (find-file-noselect filename t)))
-    (let ((tick (buffer-modified-tick)))
+    (let ((tick (buffer-chars-modified-tick)))
       (if (and helm-org--buffer-tick
                (= tick helm-org--buffer-tick))
           helm-org--headers-cache
