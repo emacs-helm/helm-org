@@ -369,7 +369,6 @@ will be refiled."
               (y-or-n-p (format "%s have auto save data, continue? "
                                 (mapconcat #'identity autosaves ", "))))
       (helm :sources (helm-source-org-headings-for-files files)
-            :candidate-number-limit 99999
             :truncate-lines helm-org-truncate-lines
             :buffer "*helm org headings*"))))
 
@@ -382,7 +381,6 @@ will be refiled."
         org-startup-indented
         org-hide-leading-stars)
     (helm :sources (helm-source-org-headings-for-files files)
-          :candidate-number-limit 99999
           :preselect (helm-org-in-buffer-preselect)
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org inbuffer*")))
@@ -396,7 +394,6 @@ will be refiled."
         (helm-org-headings-max-depth  50)
         (files (list (current-buffer))))
     (helm :sources (helm-source-org-headings-for-files files t)
-          :candidate-number-limit 99999
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org parent headings*")))
 
@@ -405,7 +402,6 @@ will be refiled."
   "Preconfigured helm for org templates."
   (interactive)
   (helm :sources (helm-source-org-capture-templates)
-        :candidate-number-limit 99999
         :truncate-lines helm-org-truncate-lines
         :buffer "*helm org capture templates*"))
 
