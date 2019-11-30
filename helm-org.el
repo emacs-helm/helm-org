@@ -366,9 +366,7 @@ will be refiled."
                                    (concat "#" (helm-basename f) "#")
                                    (helm-basedir f)))
                             collect (helm-basename f)))
-        (files (org-agenda-files))
-        org-hide-leading-stars
-        org-startup-indented)
+        (files (org-agenda-files)))
     (when (or (null autosaves)
               helm-org-ignore-autosaves
               (y-or-n-p (format "%s have auto save data, continue? "
@@ -382,9 +380,7 @@ will be refiled."
   "Preconfigured helm for org buffer headings."
   (interactive "P")
   (let (helm-org-show-filename
-        (files (list (current-buffer)))
-        org-startup-indented
-        org-hide-leading-stars)
+        (files (list (current-buffer))))
     (helm :sources (helm-org-build-sources files nil arg)
           :preselect (helm-org-in-buffer-preselect)
           :truncate-lines helm-org-truncate-lines
