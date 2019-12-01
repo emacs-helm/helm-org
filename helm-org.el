@@ -205,7 +205,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
 (defvar helm-org--headers-cache nil)
 (defvar helm-org--buffer-tick nil)
 
-(defun helm-org-build-sources (filenames &optional parents)
+(defun helm-org-build-sources (filenames &optional parents force-refresh)
   (cl-loop for file in filenames
            for name = (if (bufferp file)
                           (buffer-name file)
@@ -217,7 +217,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                            file
                            helm-org-headings-fontify
                            (or parents (null helm-org-show-filename))
-                           parents)
+                           parents force-refresh)
                           'stringp
                           nil '(metadata (display-sort-function
                                           .
@@ -229,7 +229,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
              :keymap helm-org-headings-map
              :group 'helm-org)))
 
-(defun helm-org--get-candidates-in-file (filename &optional fontify nofname parents)
+(defun helm-org--get-candidates-in-file (filename &optional fontify nofname parents force-refresh)
   "Get candidates for org FILENAME.
 Fontify each heading when FONTIFY is specified.
 Don't show filename when NOFNAME.
@@ -239,7 +239,8 @@ Get PARENTS as well when specified."
                          ((pred stringp) (find-file-noselect filename t)))
     (let ((tick (buffer-chars-modified-tick)))
       (if (and helm-org--buffer-tick
-               (= tick helm-org--buffer-tick))
+               (= tick helm-org--buffer-tick)
+               (null force-refresh))
           helm-org--headers-cache
         (message "Refreshing cache in `%s'..." (buffer-name))
         (set (make-local-variable 'helm-org--buffer-tick) tick)
@@ -356,48 +357,44 @@ will be refiled."
 (put 'helm-org-run-refile-heading-to 'helm-only t)
 
 ;;;###autoload
-(defun helm-org-agenda-files-headings ()
+(defun helm-org-agenda-files-headings (&optional arg)
   "Preconfigured helm for org files headings."
-  (interactive)
+  (interactive "P")
   (let ((autosaves (cl-loop for f in (org-agenda-files)
                             when (file-exists-p
                                   (expand-file-name
                                    (concat "#" (helm-basename f) "#")
                                    (helm-basedir f)))
                             collect (helm-basename f)))
-        (files (org-agenda-files))
-        org-hide-leading-stars
-        org-startup-indented)
+        (files (org-agenda-files)))
     (when (or (null autosaves)
               helm-org-ignore-autosaves
               (y-or-n-p (format "%s have auto save data, continue? "
                                 (mapconcat #'identity autosaves ", "))))
-      (helm :sources (helm-org-build-sources files)
+      (helm :sources (helm-org-build-sources files nil arg)
             :truncate-lines helm-org-truncate-lines
             :buffer "*helm org headings*"))))
 
 ;;;###autoload
-(defun helm-org-in-buffer-headings ()
+(defun helm-org-in-buffer-headings (&optional arg)
   "Preconfigured helm for org buffer headings."
-  (interactive)
+  (interactive "P")
   (let (helm-org-show-filename
-        (files (list (current-buffer)))
-        org-startup-indented
-        org-hide-leading-stars)
-    (helm :sources (helm-org-build-sources files)
+        (files (list (current-buffer))))
+    (helm :sources (helm-org-build-sources files nil arg)
           :preselect (helm-org-in-buffer-preselect)
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org inbuffer*")))
 
 ;;;###autoload
-(defun helm-org-parent-headings ()
+(defun helm-org-parent-headings (&optional arg)
   "Preconfigured helm for org headings that are parents of the current heading."
-  (interactive)
+  (interactive "P")
   ;; Use a large max-depth to ensure all parents are displayed.
   (let ((helm-org-headings-min-depth 1)
         (helm-org-headings-max-depth  50)
         (files (list (current-buffer))))
-    (helm :sources (helm-org-build-sources files t)
+    (helm :sources (helm-org-build-sources files t arg)
           :truncate-lines helm-org-truncate-lines
           :buffer "*helm org parent headings*")))
 
