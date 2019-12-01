@@ -33,6 +33,12 @@
 
 (defvar helm-completing-read-handlers-alist)
 
+;; Internals
+(defvar helm-org--headers-cache nil)
+(defvar helm-org--buffer-tick nil)
+(defvar helm-org--force-refresh nil
+  "[INTERNAL] Force refreshing caches  when non nil.")
+
 ;; Menu
 ;;;###autoload
 (progn
@@ -60,28 +66,34 @@
 This reflect fontification in `helm-buffer' when non--nil.
 NOTE: This will be slow on large org buffers."
   :group 'helm-org
-  :type 'boolean)
+  :type 'boolean
+  :set (lambda (var value)
+         (set var value)
+         (setq helm-org--force-refresh t)))
 
 (defcustom helm-org-format-outline-path nil
   "Show all org level as path."
   :group 'helm-org
-  :type 'boolean)
-
-(defcustom helm-org-show-filename nil
-  "Show org filenames in `helm-org-agenda-files-headings' when non--nil.
-Note this have no effect in `helm-org-in-buffer-headings'."
-  :group 'helm-org
-  :type 'boolean)
+  :type 'boolean
+  :set (lambda (var value)
+         (set var value)
+         (setq helm-org--force-refresh t)))
 
 (defcustom helm-org-headings-min-depth 1
   "Minimum depth of org headings to start with."
   :group 'helm-org
-  :type 'integer)
+  :type 'integer
+  :set (lambda (var value)
+         (set var value)
+         (setq helm-org--force-refresh t)))
 
 (defcustom helm-org-headings-max-depth 8
   "Go down to this maximum depth of org headings."
   :group 'helm-org
-  :type 'integer)
+  :type 'integer
+  :set (lambda (var value)
+         (set var value)
+         (setq helm-org--force-refresh t)))
 
 (defcustom helm-org-headings-actions
   '(("Go to heading" . helm-org-goto-marker)
@@ -202,9 +214,6 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
     map)
   "Keymap for `helm-source-org-headings-for-files'.")
 
-(defvar helm-org--headers-cache nil)
-(defvar helm-org--buffer-tick nil)
-
 (defun helm-org-build-sources (filenames &optional parents force-refresh)
   (cl-loop for file in filenames
            for name = (if (bufferp file)
@@ -216,7 +225,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                           (helm-org--get-candidates-in-file
                            file
                            helm-org-headings-fontify
-                           (or parents (null helm-org-show-filename))
+                           t
                            parents force-refresh)
                           'stringp
                           nil '(metadata (display-sort-function
@@ -371,20 +380,25 @@ will be refiled."
               helm-org-ignore-autosaves
               (y-or-n-p (format "%s have auto save data, continue? "
                                 (mapconcat #'identity autosaves ", "))))
-      (helm :sources (helm-org-build-sources files nil arg)
-            :truncate-lines helm-org-truncate-lines
-            :buffer "*helm org headings*"))))
+      (unwind-protect
+          (helm :sources (helm-org-build-sources
+                          files nil (or arg helm-org--force-refresh))
+                :truncate-lines helm-org-truncate-lines
+                :buffer "*helm org headings*")
+        (setq helm-org--force-refresh nil)))))
 
 ;;;###autoload
 (defun helm-org-in-buffer-headings (&optional arg)
   "Preconfigured helm for org buffer headings."
   (interactive "P")
-  (let (helm-org-show-filename
-        (files (list (current-buffer))))
-    (helm :sources (helm-org-build-sources files nil arg)
-          :preselect (helm-org-in-buffer-preselect)
-          :truncate-lines helm-org-truncate-lines
-          :buffer "*helm org inbuffer*")))
+  (let ((files (list (current-buffer))))
+    (unwind-protect
+        (helm :sources (helm-org-build-sources
+                        files nil (or arg helm-org--force-refresh))
+              :preselect (helm-org-in-buffer-preselect)
+              :truncate-lines helm-org-truncate-lines
+              :buffer "*helm org inbuffer*")
+      (setq helm-org--force-refresh nil))))
 
 ;;;###autoload
 (defun helm-org-parent-headings (&optional arg)
@@ -394,9 +408,12 @@ will be refiled."
   (let ((helm-org-headings-min-depth 1)
         (helm-org-headings-max-depth  50)
         (files (list (current-buffer))))
-    (helm :sources (helm-org-build-sources files t arg)
-          :truncate-lines helm-org-truncate-lines
-          :buffer "*helm org parent headings*")))
+    (unwind-protect
+        (helm :sources (helm-org-build-sources
+                        files t (or arg helm-org--force-refresh))
+              :truncate-lines helm-org-truncate-lines
+              :buffer "*helm org parent headings*")
+      (setq helm-org--force-refresh nil))))
 
 ;;;###autoload
 (defun helm-org-capture-templates ()
