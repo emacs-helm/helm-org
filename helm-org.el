@@ -234,6 +234,8 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                                             (sort candidates
                                                   #'helm-generic-sort-fn)))))
              :match-dynamic t
+             :filtered-candidate-transformer
+             #'helm-org-indent-headings
              :action 'helm-org-headings-actions
              :keymap helm-org-headings-map
              :group 'helm-org)))
@@ -310,6 +312,47 @@ Get PARENTS as well when specified."
                                          'helm-real-display heading
                                          'helm-realvalue (point-marker)))))))
           (message "Refreshing cache in `%s' done" (buffer-name)))))))
+
+(defun helm-org-indent-headings (candidates _source)
+  "Indent headings and hide leading stars displayed in the helm buffer.
+If `org-startup-indented' and `org-hide-leading-stars' are nil, do
+nothing to CANDIDATES."
+  (cl-loop for disp in candidates collect
+           (helm-org-indent-headings-1 disp)))
+
+(defun helm-org-indent-headings-1 (candidate)
+  (if helm-org-headings-fontify
+      (when (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" candidate)
+        (replace-match "\\1\\2\\3" t nil candidate))
+    (when (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" candidate)
+      (let ((foreground (org-find-invisible-foreground)))
+        (with-helm-current-buffer
+          (cond
+           ;; org-startup-indented is t, and org-hide-leading-stars is t
+           ;; Or: #+STARTUP: indent hidestars
+           ((and org-startup-indented org-hide-leading-stars)
+            (with-helm-buffer
+              (require 'org-indent)
+              (org-indent-mode 1)
+              (replace-match
+               (format "%s\\2\\3"
+                       (propertize (replace-match "\\1" t nil candidate)
+                                   'face `(:foreground ,foreground)))
+               t nil candidate)))
+           ;; org-startup-indented is nil, org-hide-leading-stars is t
+           ;; Or: #+STARTUP: noindent hidestars
+           ((and (not org-startup-indented) org-hide-leading-stars)
+            (with-helm-buffer
+              (replace-match
+               (format "%s\\2\\3"
+                       (propertize (replace-match "\\1" t nil candidate)
+                                   'face `(:foreground ,foreground)))
+               t nil candidate)))
+           ;; org-startup-indented is nil, and org-hide-leading-stars is nil
+           ;; Or: #+STARTUP: noindent showstars
+           (t
+            (with-helm-buffer
+              (replace-match "\\1\\2\\3" t nil candidate)))))))))
 
 (defun helm-org-insert-link-to-heading-at-marker (marker)
   "Insert link to heading at MARKER position."
