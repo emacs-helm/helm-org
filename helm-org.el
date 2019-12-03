@@ -122,6 +122,11 @@ NOTE: This will be slow on large org buffers."
 
 ** Tips
 
+*** Matching and completion-styles
+
+In addition of multi matching like in all other helm commands, helm-org obey `completion-styles'
+which allow having flex aka fuzzy matching, see [[Completion-styles][Completion-styles]].
+
 *** Refiling
 
 You can refile one or more headings at a time.
@@ -237,6 +242,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
              :filtered-candidate-transformer
              #'helm-org-indent-headings
              :action 'helm-org-headings-actions
+             :help-message 'helm-org-headings-help-message
              :keymap helm-org-headings-map
              :group 'helm-org)))
 
