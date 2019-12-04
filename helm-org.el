@@ -328,37 +328,39 @@ nothing to CANDIDATES."
 
 (defun helm-org-indent-headings-1 (candidate)
   (if helm-org-headings-fontify
-      (when (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" candidate)
-        (replace-match "\\1\\2\\3" t nil candidate))
-    (when (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" candidate)
-      (let ((foreground (org-find-invisible-foreground)))
-        (with-helm-current-buffer
-          (cond
-           ;; org-startup-indented is t, and org-hide-leading-stars is t
-           ;; Or: #+STARTUP: indent hidestars
-           ((and org-startup-indented org-hide-leading-stars)
-            (with-helm-buffer
-              (require 'org-indent)
-              (org-indent-mode 1)
-              (replace-match
-               (format "%s\\2\\3"
-                       (propertize (replace-match "\\1" t nil candidate)
-                                   'face `(:foreground ,foreground)))
-               t nil candidate)))
-           ;; org-startup-indented is nil, org-hide-leading-stars is t
-           ;; Or: #+STARTUP: noindent hidestars
-           ((and (not org-startup-indented) org-hide-leading-stars)
-            (with-helm-buffer
-              (replace-match
-               (format "%s\\2\\3"
-                       (propertize (replace-match "\\1" t nil candidate)
-                                   'face `(:foreground ,foreground)))
-               t nil candidate)))
-           ;; org-startup-indented is nil, and org-hide-leading-stars is nil
-           ;; Or: #+STARTUP: noindent showstars
-           (t
-            (with-helm-buffer
-              (replace-match "\\1\\2\\3" t nil candidate)))))))))
+      (if (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" candidate)
+          (replace-match "\\1\\2\\3" t nil candidate)
+        candidate)
+    (if (string-match "^\\(\\**\\)\\(\\* \\)\\(.*\n?\\)" candidate)
+        (let ((foreground (org-find-invisible-foreground)))
+          (with-helm-current-buffer
+            (cond
+             ;; org-startup-indented is t, and org-hide-leading-stars is t
+             ;; Or: #+STARTUP: indent hidestars
+             ((and org-startup-indented org-hide-leading-stars)
+              (with-helm-buffer
+                (require 'org-indent)
+                (org-indent-mode 1)
+                (replace-match
+                 (format "%s\\2\\3"
+                         (propertize (replace-match "\\1" t nil candidate)
+                                     'face `(:foreground ,foreground)))
+                 t nil candidate)))
+             ;; org-startup-indented is nil, org-hide-leading-stars is t
+             ;; Or: #+STARTUP: noindent hidestars
+             ((and (not org-startup-indented) org-hide-leading-stars)
+              (with-helm-buffer
+                (replace-match
+                 (format "%s\\2\\3"
+                         (propertize (replace-match "\\1" t nil candidate)
+                                     'face `(:foreground ,foreground)))
+                 t nil candidate)))
+             ;; org-startup-indented is nil, and org-hide-leading-stars is nil
+             ;; Or: #+STARTUP: noindent showstars
+             (t
+              (with-helm-buffer
+                (replace-match "\\1\\2\\3" t nil candidate))))))
+      candidate)))
 
 (defun helm-org-insert-link-to-heading-at-marker (marker)
   "Insert link to heading at MARKER position."
