@@ -114,6 +114,11 @@ NOTE: This will be slow on large org buffers."
   :type 'boolean
   :group 'helm-org)
 
+(defcustom helm-org-completion-styles '(helm)
+  "A list of styles suitable for `completion-styles'."
+  :group 'helm-org
+  :type '(repeat symbol))
+
 
 ;;; Help
 ;;
@@ -237,7 +242,8 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                                           .
                                           (lambda (candidates)
                                             (sort candidates
-                                                  #'helm-generic-sort-fn)))))
+                                                  #'helm-generic-sort-fn))))
+                          nil helm-org-completion-styles)
              :match-dynamic t
              :filtered-candidate-transformer
              #'helm-org-indent-headings
