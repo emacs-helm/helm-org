@@ -396,7 +396,12 @@ will be refiled."
   (let* ((victims (with-helm-buffer (helm-marked-candidates)))
          (buffer (marker-buffer marker))
          (filename (buffer-file-name buffer))
-         (rfloc (list nil filename nil marker)))
+         ;; get the heading we refile to so org doesn't
+         ;; output 'Refile to "nil" in file ...'
+         (heading (with-current-buffer buffer
+                    (org-with-point-at marker
+                      (org-get-heading :no-tags :no-todo :no-priority :no-comment))))
+         (rfloc (list heading filename nil marker)))
     (when (and (= 1 (length victims))
                (equal (helm-get-selection) (car victims)))
       ;; No candidates are marked; we are refiling the entry at point
