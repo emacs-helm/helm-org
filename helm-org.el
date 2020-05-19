@@ -232,6 +232,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                             (helm-basename file))
                collect
                (helm-build-sync-source (format "Org headings (%s)" name)
+                 :follow 1
                  :candidates (helm-dynamic-completion
                               (helm-org--get-candidates-in-file
                                file
