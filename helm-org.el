@@ -99,7 +99,8 @@ NOTE: This will be slow on large org buffers."
   '(("Go to heading" . helm-org-goto-marker)
     ("Open in indirect buffer `C-c i'" . helm-org--open-heading-in-indirect-buffer)
     ("Refile heading(s) (marked-to-selected|current-to-selected) `C-c w`" . helm-org--refile-heading-to)
-    ("Insert link to this heading `C-c l`" . helm-org-insert-link-to-heading-at-marker))
+    ("Insert link to this heading `C-c l`" . helm-org-insert-link-to-heading-at-marker)
+    ("Clock-in this heading" . helm-org-clock-in))
   "Default actions alist for `helm-source-org-headings-for-files'."
   :group 'helm-org
   :type '(alist :key-type string :value-type function))
@@ -412,6 +413,11 @@ will be refiled."
       (cl-loop for victim in victims
                do (org-with-point-at victim
                     (org-refile nil nil rfloc))))))
+
+(defun helm-org-clock-in (marker)
+  "Start the clock on the heading pointed by the MARKER."
+  (helm-org-goto-marker marker)
+  (org-clock-in))
 
 (defun helm-org-in-buffer-preselect ()
   "Return the current or closest visible heading as a regexp string."
