@@ -1,6 +1,7 @@
 [[https://github.com/emacs-helm/helm-recoll/blob/master/LICENSE][file:http://img.shields.io/badge/license-GNU%20GPLv3-blue.svg]]
 [[http://stable.melpa.org/#/helm-recoll][file:http://stable.melpa.org/packages/helm-org-badge.svg]]
 [[http://melpa.org/#/helm-recoll][file:http://melpa.org/packages/helm-org-badge.svg]]
+[[https://travis-ci.com/emacs-helm/helm-org][https://travis-ci.com/emacs-helm/helm-org.svg?branch=master]]
 
 * Helm for org headlines and keywords completion.
 
