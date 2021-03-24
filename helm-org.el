@@ -169,9 +169,11 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
 
 ** Commands
 \\<helm-org-headings-map>
-\\[helm-org-run-open-heading-in-indirect-buffer]\t\tOpen heading in indirect buffer.
-\\[helm-org-run-refile-heading-to]\t\tRefile current or marked headings to selection.
-\\[helm-org-run-insert-link-to-heading-at-marker]\t\tInsert link at point to selection."
+|Keys|Description
+|-----------+----------|
+|\\[helm-org-run-open-heading-in-indirect-buffer]|Open heading in indirect buffer.
+|\\[helm-org-run-refile-heading-to]|Refile current or marked headings to selection.
+|\\[helm-org-run-insert-link-to-heading-at-marker]|Insert link at point to selection."
   )
 
 ;;; Org capture templates
