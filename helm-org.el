@@ -375,13 +375,10 @@ nothing to CANDIDATES."
 
 (defun helm-org-insert-link-to-heading-at-marker (marker)
   "Insert link to heading at MARKER position."
-  (with-current-buffer (marker-buffer marker)
-    (let ((heading-name (save-excursion (goto-char (marker-position marker))
-                                        (nth 4 (org-heading-components))))
-          (file-name (buffer-file-name)))
-      (with-helm-current-buffer
-        (org-insert-link
-         file-name (concat "file:" file-name "::*" heading-name))))))
+  (save-excursion
+    (goto-char (marker-position marker))
+    (call-interactively 'org-store-link))
+  (call-interactively 'org-insert-last-stored-link))
 
 (defun helm-org-run-insert-link-to-heading-at-marker ()
   "Run interactively `helm-org-insert-link-to-heading-at-marker'."
