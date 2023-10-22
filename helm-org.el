@@ -249,6 +249,9 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                                                       #'helm-generic-sort-fn))))
                               nil helm-org-completion-styles)
                  :match-dynamic t
+                 :find-file-target (lambda (source)
+                                     (let ((marker (helm-get-selection nil nil source)))
+                                       (buffer-file-name (marker-buffer marker))))
                  :filtered-candidate-transformer
                  #'helm-org-indent-headings
                  :action 'helm-org-headings-actions
