@@ -353,6 +353,7 @@ nothing to CANDIDATES."
              ;; Or: #+STARTUP: indent hidestars
              ((and org-startup-indented org-hide-leading-stars)
               (with-helm-buffer
+                (setq-local warning-suppress-log-types '((org-element)))
                 (require 'org-indent)
                 (org-indent-mode 1)
                 (replace-match
