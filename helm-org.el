@@ -350,20 +350,10 @@ nothing to CANDIDATES."
           (with-helm-current-buffer
             (cond
              ;; org-startup-indented is t, and org-hide-leading-stars is t
-             ;; Or: #+STARTUP: indent hidestars
-             ((and org-startup-indented org-hide-leading-stars)
-              (with-helm-buffer
-                (setq-local warning-suppress-log-types '((org-element)))
-                (require 'org-indent)
-                (org-indent-mode 1)
-                (replace-match
-                 (format "%s\\2\\3"
-                         (propertize (replace-match "\\1" t nil candidate)
-                                     'face `(:foreground ,foreground)))
-                 t nil candidate)))
-             ;; org-startup-indented is nil, org-hide-leading-stars is t
-             ;; Or: #+STARTUP: noindent hidestars
-             ((and (not org-startup-indented) org-hide-leading-stars)
+             ;; Or: #+STARTUP: indent hidestars. Note that
+             ;; org-indent-mode when enabled set locally
+             ;; org-hide-leading-stars to t.
+             (org-hide-leading-stars
               (with-helm-buffer
                 (replace-match
                  (format "%s\\2\\3"
