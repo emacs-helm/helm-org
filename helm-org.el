@@ -31,6 +31,8 @@
 (require 'helm-utils)
 (require 'org)
 
+(declare-function helm-dynamic-completion "ext:helm-mode.el")
+
 (defvar helm-completing-read-handlers-alist)
 
 ;; Internals
