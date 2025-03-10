@@ -302,8 +302,7 @@ Get PARENTS as well when specified."
                        ;; clear cache for new version of org-get-outline-path
                        (and (boundp 'org-outline-path-cache)
                             (setq org-outline-path-cache nil))
-                       (cl-loop with width = (window-width (helm-window))
-                                while (funcall search-fn)
+                       (cl-loop while (funcall search-fn)
                                 for beg = (point-at-bol)
                                 for end = (point-at-eol)
                                 when (and fontify
@@ -327,7 +326,7 @@ Get PARENTS as well when specified."
                                                           (list heading))
                                                 (wrong-number-of-arguments
                                                  (org-get-outline-path t t)))
-                                              width file)
+                                              999 file)
                                            (if file
                                                (concat file (funcall match-fn  0))
                                              (funcall match-fn  0)))
