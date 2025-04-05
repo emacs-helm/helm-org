@@ -1,7 +1,7 @@
 ;;; helm-org.el --- Helm for org headlines and keywords completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012 ~ 2025 Thierry Volpiatto <thierry.volpiatto@gmail.com>
-;; Author:      Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2012 ~ 2025 Thierry Volpiatto <thievol@posteo.net>
+;; Author:      Thierry Volpiatto <thievol@posteo.net>
 
 ;; URL: https://github.com/emacs-helm/helm-org
 ;; Package-Requires: ((helm "4.0.2") (emacs "25.1"))
