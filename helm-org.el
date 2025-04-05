@@ -187,7 +187,7 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
   (helm-build-sync-source "Org Capture Templates:"
     :candidates (cl-loop for template in org-capture-templates
                          collect (cons (nth 1 template) (nth 0 template)))
-    :action '(("Do capture" . (lambda (template-shortcut)
+    :action `(("Do capture" . ,(lambda (template-shortcut)
                                 (org-capture nil template-shortcut))))))
 
 ;;; Org headings
@@ -244,11 +244,11 @@ Note: [1] A separator can be a comma, a colon i.e. [,:] or a space.
                                parents (or force-refresh
                                            helm-org--force-refresh))
                               'stringp
-                              nil '(metadata (display-sort-function
+                              nil `(metadata (display-sort-function
                                               .
-                                              (lambda (candidates)
-                                                (sort candidates
-                                                      #'helm-generic-sort-fn))))
+                                              ,(lambda (candidates)
+                                                 (sort candidates
+                                                       #'helm-generic-sort-fn))))
                               nil helm-org-completion-styles)
                  :match-dynamic t
                  :find-file-target (lambda (source)
